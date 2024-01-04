@@ -194,7 +194,7 @@ class MathFunc(MathObj):
         "log2": (math.log2, 1, 1),
         "log10": (math.log10, 1, 1),
         "gcd": (math.gcd, 2, 1000),
-        "lcm": (math.lcm, 2, 1000),
+        "lcm": (lambda a, b: (a * b) // math.gcd(a, b), 2, 1000),
         "xor": (operator.xor, 2, 2),
         "int": (int, 1, 1),
         "float": (float, 1, 1),

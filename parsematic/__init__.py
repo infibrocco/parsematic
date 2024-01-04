@@ -123,6 +123,9 @@ class MathConst(MathObj):
         "NAN": MathNum(math.nan),
     }
 
+    def __repr__(self) -> str:
+        return "MathConst()"
+
 
 class MathOp(MathObj):
     """MathOp class for handling all mathematical operations."""
@@ -157,7 +160,7 @@ class MathOp(MathObj):
             raise ValueError(f"Unknown operator {op}")
         self.value1: MathObj = value1
         self.value2: MathObj = value2
-        if (op == "/" or op == "//") and value2 == 0:
+        if (op in ("/", "//")) and value2 == 0:
             self.op: Callable = self.ret_nan
 
     def __repr__(self) -> str:
@@ -176,6 +179,7 @@ class MathOp(MathObj):
         Returns:
             `nan`: A constant value representing not a number (NaN).
         """
+        del args
         return math.nan
 
 
@@ -201,8 +205,6 @@ class MathFunc(MathObj):
         "min": (min, 2, 1000),
         "max": (max, 2, 1000),
         "not": (operator.not_, 1, 1),
-        "int": (int, 1, 1),
-        "float": (float, 1, 1),
         "round": (round, 1, 2),
         "ceil": (math.ceil, 1, 1),
         "floor": (math.floor, 1, 1),

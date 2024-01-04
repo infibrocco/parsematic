@@ -1,4 +1,4 @@
-"""# Yet Another Math Parser (PYthon)
+"""# Parsematic
 
 This is a basic math parser that can parse mathematical expressions.
 

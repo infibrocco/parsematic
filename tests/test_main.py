@@ -1,9 +1,9 @@
-"""Tests for yampy
+"""Tests for parsematic
 """
 
 import unittest
 
-from yampy import MathParser
+from parsematic import MathParser
 
 
 class TestParse(unittest.TestCase):

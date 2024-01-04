@@ -1,21 +1,19 @@
 [tool.poetry]
-name = "yampy"
+name = "parsematic"
 version = "1.0.0"
-description = "Yet Another Math Parser (Python)"
+description = "Parsematic: a basic math parser written in python"
 authors = ["infibrocco <https://github.com/infibrocco>"]
 license = "MIT"
 readme = "README.md"
 keywords = ["math-parser", "math", "parser"]
-packages = [{ include = "yampy" }]
+packages = [{ include = "parsematic" }]
 
 
 [tool.poetry.dependencies]
 python = "^3.7"
 
 [tool.pytest.ini_options]
-pythonpath = [
-  "."
-]
+pythonpath = ["."]
 
 [build-system]
 requires = ["poetry-core"]

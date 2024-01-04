@@ -1,16 +1,16 @@
-"""Commandline interface to yampy
+"""Commandline interface to parsematic
 """
 
 import argparse
 import os
 
-from yampy import MathParser
+from parsematic import MathParser
 
 
 def main():
     """e"""
     argparser = argparse.ArgumentParser(
-        prog="yampy", description="Yet Another Math Parser (Python)"
+        prog="parsematic", description="Parsematic: just another math parser"
     )
     argparser.add_argument("-e", "--expression", required=False, type=str)
     argparser.add_argument(
@@ -23,7 +23,7 @@ def main():
         print(parser.parse(args.expression))
     else:
         while True:
-            print(parser.parse(input(f"{os.getenv('USER')}@yampy>")))
+            print(parser.parse(input(f"{os.getenv('USER')}@parsematic>")))
 
 
 if __name__ == "__main__":

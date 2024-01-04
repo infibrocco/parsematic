@@ -17,6 +17,8 @@ Parses a variety of mathematical expressions, including:
 
 - Basic arithmetic operations `(+, -, \*, /, \*\*, //, %)`
 
+- Constants `PI, TAU, NAN, E, INF`
+
 - Comparison operators `(==, !=, <, >, <=, >=)`
 
 - Parentheses for grouping
@@ -73,8 +75,9 @@ min, max`
 
 The parser will raise exceptions for invalid syntax or unsupported operations.
 
-Additional Notes
-The parser does not currently support variables or user-defined functions.
+## Additional Notes
+
+The parser currently does support constants or user-defined functions (although you have to modify MathFunc.funcs). (but not variables within the parser itself)
 
 ## Contributing
 

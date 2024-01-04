@@ -1,4 +1,4 @@
-# Yet Another Math Parser (PYthon)
+# Parsematic
 
 This is a basic math parser that can parse mathematical expressions.
 
@@ -21,7 +21,7 @@ Parses a variety of mathematical expressions, including:
 First, install it with:
 
 ```
-pip install yampy
+pip install parsematic
 ```
 
 Import the MathParser class:
@@ -46,7 +46,7 @@ print(result) # Output: 11
 Or, use it from the command line
 
 ```Python
-python -m yampy "2 + 3 * (4 - 1)"
+python -m parsematic "2 + 3 * (4 - 1)"
 ```
 
 Supported Operators:

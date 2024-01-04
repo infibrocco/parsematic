@@ -337,7 +337,9 @@ class MathParser:
                 except ValueError:
                     continue
                 except IndexError as err:
-                    raise SyntaxError(f"Invalid syntax. {tokens=}") from err
+                    raise SyntaxError(
+                        f"Invalid syntax. tokens={tokens}"
+                    ) from err
             iters += 1
 
         if len(tokens) == 0:
@@ -359,7 +361,7 @@ class MathParser:
         """
         c1: int = expr.count("(")
         if c1 != expr.count(")"):
-            raise SyntaxError(f"Mismatched parentheses. {expr=}")
+            raise SyntaxError(f"Mismatched parentheses. expr={expr}")
         if c1 == 0:
             return (None, None)
 
@@ -374,7 +376,7 @@ class MathParser:
 
         else:
             raise TypeError(
-                f"The argument expr should be a str or list type. Got {type(expr)}. {expr=}"
+                f"The argument expr should be a str or list type. Got {type(expr)}. expr={expr}"
             )
 
         return (p1, p2)

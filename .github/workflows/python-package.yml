@@ -30,10 +30,11 @@ jobs:
         python -m pip install pylint pytest poetry
         poetry install
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Lint with flake8
+    - name: Lint with pylint
       run: |
+        poetry install
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        pylint ./*/*.py --max-line-length 127 --max-branches 20 --exit-zero
+        pylint ./yampy/*.py --max-line-length 127 --max-branches 20 --exit-zero
     - name: Test with pytest
       run: |
         pytest

@@ -12,6 +12,10 @@ packages = [{ include = "yampy" }]
 [tool.poetry.dependencies]
 python = "^3.7"
 
+[tool.pytest.ini_options]
+pythonpath = [
+  "."
+]
 
 [build-system]
 requires = ["poetry-core"]

@@ -2,12 +2,9 @@
 name = "parsematic"
 version = "1.0.0"
 description = "Parsematic: a basic math parser written in python"
+authors = ["infibrocco <infibrocco@github.com>"]
 license = "MIT"
-authors = []
 readme = "README.md"
-keywords = ["math-parser", "math", "parser"]
-packages = [{ include = "parsematic" }]
-
 
 [tool.poetry.dependencies]
 python = "^3.7"

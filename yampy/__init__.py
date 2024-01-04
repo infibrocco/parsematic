@@ -157,12 +157,17 @@ class MathOp(MathObj):
             raise ValueError(f"Unknown operator {op}")
         self.value1: MathObj = value1
         self.value2: MathObj = value2
+        if (op == "/" or op == "//") and value2 == 0:
+            self.op: Callable = self.ret_nan
 
     def __repr__(self) -> str:
         return f"{self.op.__name__}({self.value1}, {self.value2})"
 
     def calc(self) -> int | float:
         return self.op(self.value1.calc(), self.value2.calc())
+
+    def ret_nan(self, *args) -> math.nan:
+        return math.nan
 
 
 class MathFunc(MathObj):

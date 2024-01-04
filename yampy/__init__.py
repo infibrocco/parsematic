@@ -35,7 +35,7 @@ import operator
 import re
 from abc import ABC
 from argparse import ArgumentError
-from typing import Callable, List, Tuple
+from typing import Callable, List, Tuple, Union
 
 
 def is_number(n: str) -> bool:
@@ -70,7 +70,7 @@ class MathObj(ABC):
         """
         return "MathObj()"
 
-    def calc(self) -> int | float:
+    def calc(self) -> Union[int, float]:
         """
         Calculates and returns the result.
 
@@ -83,7 +83,7 @@ class MathObj(ABC):
 class MathNum(MathObj):
     """MathNum class for handling all kinds of numbers."""
 
-    def __init__(self, n: str | int | float) -> None:
+    def __init__(self, n: Union[str, int, float]) -> None:
         """MathNum class for handling all kinds of numbers.
 
         Args:
@@ -108,7 +108,7 @@ class MathNum(MathObj):
     def __repr__(self) -> str:
         return repr(self.calc())
 
-    def calc(self) -> int | float:
+    def calc(self) -> Union[int, float]:
         return self.conv(self.value)
 
 
@@ -163,10 +163,19 @@ class MathOp(MathObj):
     def __repr__(self) -> str:
         return f"{self.op.__name__}({self.value1}, {self.value2})"
 
-    def calc(self) -> int | float:
+    def calc(self) -> Union[int, float]:
         return self.op(self.value1.calc(), self.value2.calc())
 
     def ret_nan(self, *args) -> math.nan:
+        """
+        A function that returns `nan`.
+
+        Parameters:
+            *args: Variable number of arguments.
+
+        Returns:
+            `nan`: A constant value representing not a number (NaN).
+        """
         return math.nan
 
 
@@ -230,7 +239,7 @@ class MathFunc(MathObj):
     def __repr__(self) -> str:
         return f"{self.func.__name__}({', '.join(repr(x) for x in self.args)})"
 
-    def calc(self) -> int | float:
+    def calc(self) -> Union[int, float]:
         return self.func(*(x.calc() for x in self.args))
 
 
@@ -335,7 +344,7 @@ class MathParser:
             return MathObj()
         return tokens[0]
 
-    def find_parentheses(self, expr: str | list) -> Tuple[int, int]:
+    def find_parentheses(self, expr: Union[str, list]) -> Tuple[int, int]:
         """Finds the index of the innermost parentheses in a given expression
 
         Args:
@@ -370,7 +379,7 @@ class MathParser:
 
         return (p1, p2)
 
-    def calculate(self, tokens: MathObj) -> int | float:
+    def calculate(self, tokens: MathObj) -> Union[int, float]:
         """Calculates the given tokens (MathObj) and returns the value.
 
         Args:
@@ -381,7 +390,7 @@ class MathParser:
         """
         return tokens.calc()
 
-    def parse(self, expression: str) -> int | float:
+    def parse(self, expression: str) -> Union[int, float]:
         """Parses the given expression and returns the calculated result.
 
         Args:

@@ -1,3 +1,10 @@
+![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/infibrocco/parsematic/python-package.yml)
+![GitHub License](https://img.shields.io/github/license/infibrocco/parsematic)
+![GitHub repo size](https://img.shields.io/github/repo-size/infibrocco/parsematic)
+![LOc](https://sloc.xyz/github/infibrocco/parsematic/)
+![GitHub Repo stars](https://img.shields.io/github/stars/infibrocco/parsematic)
+
+
 # Parsematic
 
 This is a basic math parser that can parse mathematical expressions.

@@ -1,3 +1,35 @@
+"""# Yet Another Math Parser (PYthon)
+
+This is a basic math parser that can parse mathematical expressions.
+
+## Usage
+
+Import the MathParser class:
+
+```Python
+from math_parser import MathParser
+```
+
+Create a MathParser instance:
+
+```Python
+parser = MathParser()
+```
+
+Use the parse() method to parse and evaluate an expression:
+
+```Python
+result = parser.parse("2 + 3 * (4 - 1)")
+print(result) # Output: 11
+```
+
+Or, use it from the command line
+
+```Python
+python -m yampy "2 + 3 * (4 - 1)"
+```
+"""
+
 import math
 import operator
 import re
@@ -17,33 +49,54 @@ def is_number(n: str) -> bool:
     """
     if n.isnumeric():
         return True
-    elif len(n) > 0:
-        if re.match(r"^-?\d+(?:\.\d+)?$", n):
-            return True
+    if len(n) > 0 and re.match(r"^-?\d+(?:\.\d+)?$", n):
+        return True
 
     return False
 
 
 class MathObj(ABC):
-    # Abstract base class for Mathematical Objects
+    """Abstract base class for Mathematical Objects"""
+
     def __init__(self) -> None:
         ...
 
     def __repr__(self) -> str:
+        """
+        Returns a string representation of the MathObj instance.
+
+        :return: A string representation of the MathObj instance.
+        :rtype: str
+        """
         return "MathObj()"
 
     def calc(self) -> int | float:
+        """
+        Calculates and returns the result.
+
+        :param self: The instance of the class.
+        :return: The calculated result, which can be an integer or a float.
+        """
         return 0
 
 
 class MathNum(MathObj):
-    def __init__(self, n: str) -> None:
+    """MathNum class for handling all kinds of numbers."""
+
+    def __init__(self, n: str | int | float) -> None:
         """MathNum class for handling all kinds of numbers.
 
         Args:
             n (str): Any real number in string form.
         """
-        if is_number(n):
+        super().__init__()  # just to shut up pylint
+        if isinstance(n, int):
+            self.conv: Callable = int
+            self.value: int = n
+        elif isinstance(n, float):
+            self.conv: Callable = float
+            self.value: float = n
+        elif is_number(n):
             if "." in n:
                 self.conv: Callable = float
             else:
@@ -59,7 +112,21 @@ class MathNum(MathObj):
         return self.conv(self.value)
 
 
+class MathConst(MathObj):
+    """MathConst class for handling all kinds of constants."""
+
+    constants = {
+        "PI": MathNum(math.pi),
+        "TAU": MathNum(math.tau),
+        "E": MathNum(math.e),
+        "INF": MathNum(math.inf),
+        "NAN": MathNum(math.nan),
+    }
+
+
 class MathOp(MathObj):
+    """MathOp class for handling all mathematical operations."""
+
     operators = {
         "**": operator.pow,
         "//": operator.floordiv,
@@ -84,8 +151,9 @@ class MathOp(MathObj):
             value1 (MathObj): The first value to operate on.
             value2 (MathObj): The second value to operate on.
         """
+        super().__init__()
         self.op: Callable = self.operators.get(op, None)
-        if self.op == None:
+        if self.op is None:
             raise ValueError(f"Unknown operator {op}")
         self.value1: MathObj = value1
         self.value2: MathObj = value2
@@ -98,6 +166,8 @@ class MathOp(MathObj):
 
 
 class MathFunc(MathObj):
+    """MathFunc class for handling all mathematical functions."""
+
     funcs = {
         "fact": (math.factorial, 1, 1),
         "factorial": (math.factorial, 1, 1),
@@ -107,6 +177,8 @@ class MathFunc(MathObj):
         "abs": (abs, 1, 1),
         "sqrt": (math.sqrt, 1, 1),
         "log": (math.log, 1, 2),
+        "log2": (math.log2, 1, 1),
+        "log10": (math.log10, 1, 1),
         "gcd": (math.gcd, 2, 1000),
         "lcm": (math.lcm, 2, 1000),
         "xor": (operator.xor, 2, 2),
@@ -115,6 +187,17 @@ class MathFunc(MathObj):
         "min": (min, 2, 1000),
         "max": (max, 2, 1000),
         "not": (operator.not_, 1, 1),
+        "int": (int, 1, 1),
+        "float": (float, 1, 1),
+        "round": (round, 1, 2),
+        "ceil": (math.ceil, 1, 1),
+        "floor": (math.floor, 1, 1),
+        "chr": (chr, 1, 1),
+        "bin": (bin, 1, 1),
+        "hex": (hex, 1, 1),
+        "oct": (oct, 1, 1),
+        "hash": (hash, 1, 1),
+        "hypot": (math.hypot, 1, 1000),
     }
 
     def __init__(self, funcname: str, *args) -> None:
@@ -123,16 +206,19 @@ class MathFunc(MathObj):
         Args:
             funcname (str): Function name.
         """
+        super().__init__()
         self.func, self.min_args, self.max_args = self.funcs.get(
             funcname, (None, None, None)
         )
-        if self.func == None:
+        if self.func is None:
             raise ValueError(f"Unknown function {funcname}")
         self.args: Tuple[MathObj] = (
             args
             if self.max_args >= len(args) >= self.min_args
             else ArgumentError(
-                f"Invalid number of arguments to function {funcname}. Expected between {self.min_args}-{self.max_args}. Got {len(args)}."
+                "",
+                message=f"Invalid number of arguments to function {funcname}. Expected \
+                \bbetween {self.min_args}-{self.max_args}. Got {len(args)}.",
             )
         )
 
@@ -144,6 +230,8 @@ class MathFunc(MathObj):
 
 
 class MathParser:
+    """MathParser class for parsing math. (duh)"""
+
     def __init__(self):
         """MathParser class for parsing math. (duh)"""
         self.pattern: re.Pattern = re.compile(
@@ -161,75 +249,85 @@ class MathParser:
         """
 
         tokens: List[str] = re.findall(self.pattern, expression)
-        # print(f"{tokens=}")
 
-        # Add support for negative numbers
+        def should_combine_tokens(
+            token: str, tokens: List[str], i: int
+        ) -> bool:
+            return token == "-" and (
+                i == 0 or (tokens[i - 1] in MathOp.operators)
+            )
+
         updated_tokens: List[MathObj] = []
         i = 0
         while i < len(tokens):
             token = tokens[i]
-            if token == "-" and (
-                i == 0
-                or (tokens[i - 1] in MathOp.operators.keys() and tokens[i - 1] != ")")
-            ):
-                # Combine "-" with the following number to form a negative number token
-                combined_token = token + tokens[i + 1]
-                updated_tokens.append(combined_token)
-                i += 1  # Skip the next token since it has been combined
+            if should_combine_tokens(token, tokens, i):
+                updated_tokens.append(token + tokens[i + 1])
+                i += 1
+            elif token in MathConst.constants:
+                updated_tokens.append(MathConst.constants[token])
             else:
                 updated_tokens.append(token)
             i += 1
 
-        for i, v in enumerate(updated_tokens):
-            if is_number(v):
-                updated_tokens[i] = MathNum(v)
+        updated_tokens = [
+            MathNum(token) if is_number(token) else token
+            for token in updated_tokens
+        ]
 
-        while updated_tokens.count("(") > 0:
+        while "(" in updated_tokens:
             funcargs = False
             p1, p2 = self.find_parentheses(updated_tokens)
-            if updated_tokens[p1 - 1] in MathFunc.funcs.keys():
+            if updated_tokens[p1 - 1] in MathFunc.funcs:
                 funcargs = True
             expr = updated_tokens[p1 + 1 : p2]
 
-            for op in MathOp.operators.keys():
+            for op in MathOp.operators:
                 try:
                     found = expr.index(op)
                     while found != -1:
-                        expr[found] = MathOp(op, expr[found - 1], expr[found + 1])
+                        expr[found] = MathOp(
+                            op, expr[found - 1], expr[found + 1]
+                        )
                         del expr[found + 1]
                         del expr[found - 1]
                         found = expr.index(op)
                 except ValueError:
                     continue
-            if len(expr) != 1:
-                raise Exception(f"idk. heres the {expr=}")
+
+            if len(expr) > 1:
+                pass
+
             if funcargs:
                 updated_tokens[p1 - 1] = MathFunc(updated_tokens[p1 - 1], *expr)
                 updated_tokens = updated_tokens[:p1] + updated_tokens[p2 + 1 :]
 
             else:
-                updated_tokens = updated_tokens[:p1] + expr + updated_tokens[p2 + 1 :]
+                updated_tokens = (
+                    updated_tokens[:p1] + expr + updated_tokens[p2 + 1 :]
+                )
 
         tokens: List[MathObj] = updated_tokens
         iters = 0
         while len(tokens) > 1 and iters < 100:
-            for op in MathOp.operators.keys():
+            for op in MathOp.operators:
                 try:
                     found = tokens.index(op)
                     while found != -1:
-                        tokens[found] = MathOp(op, tokens[found - 1], tokens[found + 1])
+                        tokens[found] = MathOp(
+                            op, tokens[found - 1], tokens[found + 1]
+                        )
                         del tokens[found + 1]
                         del tokens[found - 1]
                         found = tokens.index(op)
                 except ValueError:
                     continue
-                except IndexError:
-                    raise SyntaxError(f"Invalid syntax. {tokens=}")
+                except IndexError as err:
+                    raise SyntaxError(f"Invalid syntax. {tokens=}") from err
             iters += 1
 
         if len(tokens) == 0:
             return MathObj()
-        # print(tokens)
         return tokens[0]
 
     def find_parentheses(self, expr: str | list) -> Tuple[int, int]:
@@ -248,7 +346,7 @@ class MathParser:
         c1: int = expr.count("(")
         if c1 != expr.count(")"):
             raise SyntaxError(f"Mismatched parentheses. {expr=}")
-        elif c1 == 0:
+        if c1 == 0:
             return (None, None)
 
         p1 = p2 = -1

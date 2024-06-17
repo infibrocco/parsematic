@@ -30,12 +30,18 @@ python -m yampy "2 + 3 * (4 - 1)"
 ```
 """
 
+import logging
 import math
 import operator
 import re
 from abc import ABC
 from argparse import ArgumentError
-from typing import Callable, List, Tuple, Union
+from typing import Callable, List, Self, Tuple, Union
+
+
+def raise_(exception, *args):
+    del args
+    raise exception
 
 
 def is_number(n: str) -> bool:
@@ -47,7 +53,7 @@ def is_number(n: str) -> bool:
     Returns:
         bool
     """
-    if n.isnumeric():
+    if isinstance(n, MathNum) or n.isnumeric():
         return True
     if len(n) > 0 and re.match(r"^-?\d+(?:\.\d+)?$", n):
         return True
@@ -90,7 +96,10 @@ class MathNum(MathObj):
             n (str): Any real number in string form.
         """
         super().__init__()  # just to shut up pylint
-        if isinstance(n, int):
+        if isinstance(n, MathNum):
+            self.conv: Callable = n.conv
+            self.value: int = n.value
+        elif isinstance(n, int):
             self.conv: Callable = int
             self.value: int = n
         elif isinstance(n, float):
@@ -110,6 +119,11 @@ class MathNum(MathObj):
 
     def calc(self) -> Union[int, float]:
         return self.conv(self.value)
+
+    def from_num(self, num: Union[int, float, MathObj, str]) -> Self:
+        if isinstance(num, MathNum):
+            return num
+        return MathNum(num)
 
 
 class MathConst(MathObj):
@@ -214,6 +228,9 @@ class MathFunc(MathObj):
         "oct": (oct, 1, 1),
         "hash": (hash, 1, 1),
         "hypot": (math.hypot, 1, 1000),
+        "degrees": (math.degrees, 1, 1),
+        "radians": (math.radians, 1, 1),
+        "gamma": (math.gamma, 1, 1),
     }
 
     def __init__(self, funcname: str, *args) -> None:
@@ -231,10 +248,12 @@ class MathFunc(MathObj):
         self.args: Tuple[MathObj] = (
             args
             if self.max_args >= len(args) >= self.min_args
-            else ArgumentError(
-                "",
-                message=f"Invalid number of arguments to function {funcname}. Expected \
+            else raise_(
+                ArgumentError(
+                    None,
+                    message=f"Invalid number of arguments to function {funcname}. Expected \
                 \bbetween {self.min_args}-{self.max_args}. Got {len(args)}.",
+                )
             )
         )
 
@@ -253,8 +272,12 @@ class MathParser:
         self.pattern: re.Pattern = re.compile(
             r"\d+\.\d+|\d+|\/\/|\*\*|\+|\-|\*|\/|\w+|\(|\)"
         )
+        logging.basicConfig(
+            format="%(levelname)s:%(message)s", level=logging.ERROR
+        )
+        self.logger = logging.getLogger()
 
-    def tokenize(self, expression: str) -> MathObj:
+    def tokenize(self, expression: str, max_len: int = 10000) -> MathObj:
         """Tokenize the expression into a MathObj (MathNum, MathOp, MathFunc) representing numbers, operators and functions.
 
         Args:
@@ -263,21 +286,22 @@ class MathParser:
         Returns:
             MathObj: A mathematical object representing the expression.
         """
+        if len(expression) > max_len:
+            return Warning("Too large input")
 
+        self.logger.info("Started tokenizing")
         tokens: List[str] = re.findall(self.pattern, expression)
-
-        def should_combine_tokens(
-            token: str, tokens: List[str], i: int
-        ) -> bool:
-            return token == "-" and (
-                i == 0 or (tokens[i - 1] in MathOp.operators)
-            )
 
         updated_tokens: List[MathObj] = []
         i = 0
         while i < len(tokens):
             token = tokens[i]
-            if should_combine_tokens(token, tokens, i):
+            self.logger.debug(token)
+            self.logger.debug(tokens)
+            if token == "-" and (
+                i == 0
+                or (tokens[i - 1] in MathOp.operators or tokens[i - 1] == "(")
+            ):
                 updated_tokens.append(token + tokens[i + 1])
                 i += 1
             elif token in MathConst.constants:
@@ -287,7 +311,13 @@ class MathParser:
             i += 1
 
         updated_tokens = [
-            MathNum(token) if is_number(token) else token
+            MathNum(token)
+            if is_number(token)
+            else (
+                MathConst.constants.get(token)
+                if token in MathConst.constants
+                else token
+            )
             for token in updated_tokens
         ]
 
@@ -315,6 +345,8 @@ class MathParser:
                 pass
 
             if funcargs:
+                self.logger.debug(expr)
+                self.logger.debug(updated_tokens)
                 updated_tokens[p1 - 1] = MathFunc(updated_tokens[p1 - 1], *expr)
                 updated_tokens = updated_tokens[:p1] + updated_tokens[p2 + 1 :]
 
@@ -394,7 +426,7 @@ class MathParser:
         """
         return tokens.calc()
 
-    def parse(self, expression: str) -> Union[int, float]:
+    def parse(self, expression: str, max_len: int = 10000) -> Union[int, float]:
         """Parses the given expression and returns the calculated result.
 
         Args:
@@ -403,5 +435,8 @@ class MathParser:
         Returns:
             int|float: The calculated result
         """
-        tokens: MathObj = self.tokenize(expression)
+        if len(expression) > max_len:
+            return Warning("Too large input")
+
+        tokens: MathObj = self.tokenize(expression, max_len)
         return self.calculate(tokens)
